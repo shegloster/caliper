@@ -45,7 +45,7 @@ export default function Builder() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Parsing failed');
-      setParseMsg(`Parsed ${data.questionCount} questions across ${data.constructCount} new construct(s) — review each below.`);
+      setParseMsg(`Parsed ${data.questionCount} questions across ${data.constructCount} new construct(s). Review each below.`);
       await load();
     } catch (err) {
       setParseMsg(err.message);
@@ -136,99 +136,122 @@ export default function Builder() {
   const pendingReview = questions.filter((q) => q.needs_review).length;
 
   return (
-    <div className="page gridBg">
-      <Link to="/dashboard" className="backLink">&larr; Dashboard</Link>
-      <div className="topline">Instrument · {instrument.status} · {instrument.unlocked ? 'Unlocked' : 'Free tier'}</div>
-      <input className="pageTitleInput" value={instrument.title} onChange={(e) => renameTitle(e.target.value)} />
-
-      {!instrument.unlocked && (
-        <div className="parsedBanner">
-          {needsUnlock && <span style={{ marginRight: 10 }}>Redeem a code to parse your uploaded draft:</span>}
-          <input placeholder="Access code" value={code} onChange={(e) => setCode(e.target.value)} style={{ marginRight: 8 }} />
-          <button className="btnGhost" onClick={redeemCode}>Redeem</button>
-          {codeMsg && <span style={{ marginLeft: 10 }}>{codeMsg}</span>}
+    <div>
+      <div className="pageHead">
+        <div style={{ flex: 1 }}>
+          <div className="topline">Instrument · {instrument.status} · {instrument.unlocked ? 'Unlocked' : 'Free tier'}</div>
+          <input className="pageTitleInput" value={instrument.title} onChange={(e) => renameTitle(e.target.value)} />
         </div>
-      )}
-
-      {instrument.unlocked && (
-        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button className="btnGhost" onClick={triggerReupload} disabled={parsing}>
-            {parsing ? 'Parsing…' : '⬆ Upload / re-parse draft'}
-          </button>
-          <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }} onChange={onInputChange} />
-        </div>
-      )}
-      {parseMsg && <div className="qMeta" style={{ marginBottom: 14 }}>{parseMsg}</div>}
-      {pendingReview > 0 && (
-        <div className="parsedBanner">{pendingReview} parsed question(s) still need review before you publish.</div>
-      )}
-
-      <div className="qList">
-        {questions.map((q, i) => {
-          const construct = constructs.find((c) => c.id === q.construct_id);
-          return (
-            <div className="qRow" key={q.id} style={q.needs_review ? { borderColor: 'var(--accent)' } : undefined}>
-              <div className="qTop">
-                <div className="qText">{String(i + 1).padStart(2, '0')}&nbsp;&nbsp;{q.text}</div>
-                <button className="qDelete" onClick={() => removeQuestion(q.id)}>✕</button>
-              </div>
-              <div className="qMeta">
-                <span className="qBadge">{q.type}</span>
-                {construct && <span className="qBadge" style={{ color: construct.color, borderColor: construct.color }}>{construct.name}</span>}
-                {q.reverse_coded && <span className="qBadge">reverse-coded</span>}
-                {q.weight != null && <span className="qBadge">weight {q.weight}</span>}
-                {q.needs_review && <span className="qBadge" style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}>needs review</span>}
-                {q.needs_review && <button className="btnGhost" style={{ padding: '2px 8px' }} onClick={() => confirmQuestion(q.id)}>Confirm</button>}
-              </div>
-              {q.type === 'likert' && <Ruler min={q.scale_min} max={q.scale_max} color={construct ? construct.color : undefined} />}
-            </div>
-          );
-        })}
-        {questions.length === 0 && <div className="qMeta">No questions yet.</div>}
-      </div>
-
-      {!showForm ? (
-        <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
-          <button className="addBtn" onClick={() => setShowForm(true)}>+ Add question</button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button className="btnGhost" onClick={publish} disabled={instrument.status === 'Live'}>{instrument.status === 'Live' ? 'Live' : 'Publish'}</button>
           {instrument.status === 'Live' && (
             <Link className="btnGhost" to={`/instrument/${id}/responses`}>View responses</Link>
           )}
         </div>
-      ) : (
-        <div className="formCard">
-          <div className="field"><label>Question text</label><input value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })} /></div>
-          <div className="formRow">
-            <div className="field"><label>Type</label>
-              <select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value })}>
-                <option value="likert">Likert scale</option>
-                <option value="open">Open text</option>
-                <option value="demographic">Demographic</option>
-              </select>
-            </div>
-            {draft.type === 'likert' && (
-              <>
-                <div className="field"><label>Min</label><input type="number" value={draft.scale_min} onChange={(e) => setDraft({ ...draft, scale_min: Number(e.target.value) })} /></div>
-                <div className="field"><label>Max</label><input type="number" value={draft.scale_max} onChange={(e) => setDraft({ ...draft, scale_max: Number(e.target.value) })} /></div>
-                <div className="field"><label>Weight</label><input type="number" step="0.1" value={draft.weight} onChange={(e) => setDraft({ ...draft, weight: Number(e.target.value) })} /></div>
-              </>
-            )}
-          </div>
-          {draft.type === 'likert' && (
-            <label className="checkRow"><input type="checkbox" checked={draft.reverse_coded} onChange={(e) => setDraft({ ...draft, reverse_coded: e.target.checked })} /> Reverse-coded</label>
-          )}
-          <div className="formActions">
-            <button className="btnGhost" onClick={() => setShowForm(false)}>Cancel</button>
-            <button className="btnPrimary" onClick={addQuestion}>Save question</button>
-          </div>
-        </div>
-      )}
+      </div>
 
-      {instrument.status === 'Live' && (
-        <p className="qMeta" style={{ marginTop: 20 }}>
-          Public form link: <code>{window.location.origin}/form/{id}</code>
-        </p>
-      )}
+      <div className="builderLayout">
+        <div>
+          {pendingReview > 0 && (
+            <div className="parsedBanner">{pendingReview} parsed question(s) still need review before you publish.</div>
+          )}
+          <div className="qList">
+            {questions.map((q, i) => {
+              const construct = constructs.find((c) => c.id === q.construct_id);
+              return (
+                <div className="qRow" key={q.id} style={q.needs_review ? { borderColor: 'var(--accent)' } : undefined}>
+                  <div className="qTop">
+                    <div className="qText">{String(i + 1).padStart(2, '0')}&nbsp;&nbsp;{q.text}</div>
+                    <button className="qDelete" onClick={() => removeQuestion(q.id)}>✕</button>
+                  </div>
+                  <div className="qMeta">
+                    <span className="qBadge">{q.type}</span>
+                    {construct && <span className="qBadge" style={{ color: construct.color, borderColor: construct.color }}>{construct.name}</span>}
+                    {q.reverse_coded && <span className="qBadge">reverse-coded</span>}
+                    {q.weight != null && <span className="qBadge">weight {q.weight}</span>}
+                    {q.needs_review && <span className="qBadge" style={{ color: 'var(--accent)', borderColor: 'var(--accent)' }}>needs review</span>}
+                    {q.needs_review && <button className="btnGhost" style={{ padding: '2px 8px' }} onClick={() => confirmQuestion(q.id)}>Confirm</button>}
+                  </div>
+                  {q.type === 'likert' && <Ruler min={q.scale_min} max={q.scale_max} color={construct ? construct.color : undefined} />}
+                </div>
+              );
+            })}
+            {questions.length === 0 && <div className="emptyState">No questions yet. Add one below, or upload a draft to auto-parse a full set.</div>}
+          </div>
+
+          {!showForm ? (
+            <button className="addBtn" onClick={() => setShowForm(true)} style={{ marginTop: 16 }}>+ Add question</button>
+          ) : (
+            <div className="formCard">
+              <div className="field"><label>Question text</label><input value={draft.text} onChange={(e) => setDraft({ ...draft, text: e.target.value })} /></div>
+              <div className="formRow">
+                <div className="field"><label>Type</label>
+                  <select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value })}>
+                    <option value="likert">Likert scale</option>
+                    <option value="open">Open text</option>
+                    <option value="demographic">Demographic</option>
+                  </select>
+                </div>
+                {draft.type === 'likert' && (
+                  <>
+                    <div className="field"><label>Min</label><input type="number" value={draft.scale_min} onChange={(e) => setDraft({ ...draft, scale_min: Number(e.target.value) })} /></div>
+                    <div className="field"><label>Max</label><input type="number" value={draft.scale_max} onChange={(e) => setDraft({ ...draft, scale_max: Number(e.target.value) })} /></div>
+                    <div className="field"><label>Weight</label><input type="number" step="0.1" value={draft.weight} onChange={(e) => setDraft({ ...draft, weight: Number(e.target.value) })} /></div>
+                  </>
+                )}
+              </div>
+              {draft.type === 'likert' && (
+                <label className="checkRow"><input type="checkbox" checked={draft.reverse_coded} onChange={(e) => setDraft({ ...draft, reverse_coded: e.target.checked })} /> Reverse-coded</label>
+              )}
+              <div className="formActions">
+                <button className="btnGhost" onClick={() => setShowForm(false)}>Cancel</button>
+                <button className="btnPrimary" onClick={addQuestion}>Save question</button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <aside className="builderSide">
+          {!instrument.unlocked ? (
+            <div className="sideCard">
+              <div className="sideCardTitle">Unlock this instrument</div>
+              <p className="sideCardText">Enter an access code to enable draft upload, scoring, and export.</p>
+              {needsUnlock && <p className="sideCardText" style={{ color: 'var(--accent)' }}>Redeem a code to parse your uploaded draft.</p>}
+              <input placeholder="Access code" value={code} onChange={(e) => setCode(e.target.value)} style={{ marginBottom: 8, width: '100%' }} />
+              <button className="btnGhost wide" onClick={redeemCode}>Redeem</button>
+              {codeMsg && <div className="qMeta" style={{ marginTop: 8 }}>{codeMsg}</div>}
+            </div>
+          ) : (
+            <div className="sideCard">
+              <div className="sideCardTitle">Draft upload</div>
+              <p className="sideCardText">Re-parse a new draft into this instrument.</p>
+              <button className="btnGhost wide" onClick={triggerReupload} disabled={parsing}>
+                {parsing ? 'Parsing…' : 'Upload / re-parse draft'}
+              </button>
+              <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }} onChange={onInputChange} />
+              {parseMsg && <div className="qMeta" style={{ marginTop: 10 }}>{parseMsg}</div>}
+            </div>
+          )}
+
+          {instrument.status === 'Live' && (
+            <div className="sideCard">
+              <div className="sideCardTitle">Public form link</div>
+              <p className="sideCardText">Share this with respondents.</p>
+              <code className="linkChip">{window.location.origin}/form/{id}</code>
+            </div>
+          )}
+
+          <div className="sideCard">
+            <div className="sideCardTitle">Constructs</div>
+            {constructs.length === 0 && <p className="sideCardText">Added automatically once you save your first Likert question.</p>}
+            {constructs.map((c) => (
+              <div key={c.id} className="constructChip" style={{ marginBottom: 6 }}>
+                <span className="swatch" style={{ background: c.color }} />{c.name}
+              </div>
+            ))}
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

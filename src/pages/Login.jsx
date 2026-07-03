@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import Gauge from '../components/Gauge';
 
 export default function Login() {
   const [mode, setMode] = useState('login');
@@ -43,8 +44,19 @@ export default function Login() {
   return (
     <div className="authScreen">
       <div className="authBrandPane">
-        <div className="brand large"><span className="brandDot" />CALIPER</div>
-        <p className="authTagline">Turn a research draft into a scored instrument — upload, deploy, and read the results already calculated.</p>
+        <div className="brandBlock">
+          <div className="brand large"><span className="brandDot" />CALIPER</div>
+          <div className="brandSubtitle">Research instruments, calibrated</div>
+        </div>
+        <p className="authTagline">Upload your draft questionnaire, deploy it in minutes, and every response arrives already scored.</p>
+        <div className="illustrationBlock">
+          <div className="illustrationLabel">Live construct scoring</div>
+          <div className="authIllustration">
+            <Gauge value={78} label="Health Literacy" color="#3E6B8C" size={78} />
+            <Gauge value={41} label="Perceived Barriers" color="#B8722A" size={78} />
+            <Gauge value={63} label="Social Support" color="#4B6B54" size={78} />
+          </div>
+        </div>
       </div>
       <div className="authFormPane">
         <div className="authCard">
@@ -74,6 +86,7 @@ export default function Login() {
             </button>
           </form>
         </div>
+        <footer className="siteFooter">Caliper by OOladehinde</footer>
       </div>
     </div>
   );

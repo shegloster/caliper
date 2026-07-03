@@ -1,28 +1,28 @@
-# Caliper — Deployment Runbook
+# Caliper: Deployment Runbook
 
 Everything code-side is already written in this project. What's left is
-account setup and configuration, done through each service's dashboard —
-steps below, in order. Each is marked who does it.
+account setup and configuration, done through each service's dashboard.
+Steps below, in order. Each is marked who does it.
 
 ---
 
-## 1. Supabase project — YOU DO THIS
+## 1. Supabase project (YOU DO THIS)
 
 1. Go to supabase.com → New project. Pick a region (EU West is usually
    fastest from Nigeria; check latency once it's up).
 2. Once created, open the SQL Editor and run the entire contents of
-   `supabase/schema.sql` — this creates every table, the auto-profile
+   `supabase/schema.sql`. This creates every table, the auto-profile
    trigger, the response-cap trigger, RLS policies, and the access-code
    redemption function.
 3. Go to Project Settings → API. Copy:
    - **Project URL**
    - **anon public key**
-   - **service_role key** (keep this one secret — used only in Edge
+   - **service_role key** (keep this one secret, used only in Edge
      Functions, never in the frontend)
 
 ---
 
-## 2. Google sign-in — YOU DO THIS
+## 2. Google sign-in (YOU DO THIS)
 
 1. **Google Cloud Console** → APIs & Services → Credentials → Create
    OAuth 2.0 Client ID (Web application).
@@ -31,12 +31,12 @@ steps below, in order. Each is marked who does it.
 3. **Supabase Dashboard** → Authentication → Providers → Google → paste
    in the Client ID and Client Secret from step 1, enable it.
 
-No code changes needed — `Login.jsx` already calls
+No code changes needed. `Login.jsx` already calls
 `supabase.auth.signInWithOAuth({ provider: 'google' })`.
 
 ---
 
-## 3. Resend (transactional email) — YOU DO THIS
+## 3. Resend (transactional email) (YOU DO THIS)
 
 1. Sign up at resend.com, add your domain.
 2. Add the DKIM/SPF/DMARC TXT records Resend gives you, through
@@ -54,7 +54,7 @@ This fixes signup confirmation and password reset emails immediately.
 
 ---
 
-## 4. Deploy the Edge Functions — YOU RUN THESE COMMANDS
+## 4. Deploy the Edge Functions (YOU RUN THESE COMMANDS)
 
 Requires the Supabase CLI (`npm install -g supabase`).
 
@@ -76,7 +76,7 @@ supabase functions deploy parse-draft
 
 ---
 
-## 5. Configure the frontend — YOU DO THIS
+## 5. Configure the frontend (YOU DO THIS)
 
 1. Copy `.env.example` to `.env` and fill in your Supabase URL and anon
    key from step 1.
@@ -88,7 +88,7 @@ supabase functions deploy parse-draft
 
 ---
 
-## 6. Deploy to Netlify — YOU DO THIS
+## 6. Deploy to Netlify (YOU DO THIS)
 
 1. Push this project to a GitHub repo.
 2. Netlify → Add new site → Import from Git → select the repo.
@@ -103,7 +103,7 @@ supabase functions deploy parse-draft
 
 ---
 
-## 7. Issue your first access code — YOU DO THIS
+## 7. Issue your first access code (YOU DO THIS)
 
 In the Supabase SQL Editor:
 
@@ -118,16 +118,16 @@ Hand that code to a real student and watch the whole loop work.
 
 ## What's still mocked / not yet built
 
-- **Paystack** — functions are written (`initialize-payment`,
+- **Paystack**: functions are written (`initialize-payment`,
   `paystack-webhook`) but intentionally left undeployed. Access codes
   cover unlocking for now.
-- **Draft-parsing library reliability** — `parse-draft` uses `mammoth`
+- **Draft-parsing library reliability**: `parse-draft` uses `mammoth`
   (docx) and `unpdf` (pdf) inside the Deno edge runtime. These weren't
   executed against a real file before deployment (no way to test the
-  actual Supabase edge runtime from where this was built) — test with a
+  actual Supabase edge runtime from where this was built). Test with a
   real .docx and .pdf upload first, and check the function logs in the
   Supabase dashboard if either format fails to extract text.
-- **Anthropic API key** — needs an active key with billing enabled on
+- **Anthropic API key**: needs an active key with billing enabled on
   your Anthropic account, set as the `ANTHROPIC_API_KEY` secret above.
 
 ## What this project already does end-to-end

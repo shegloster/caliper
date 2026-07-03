@@ -66,6 +66,7 @@ export default function RespondentForm() {
         </div>
         {errorMsg && <div className="errorText">{errorMsg}</div>}
         <button className="btnPrimary wide" disabled={!allAnswered} onClick={submit} style={{ marginTop: 16 }}>Submit response</button>
+        <footer className="siteFooter">Caliper by OOladehinde</footer>
       </div>
     </div>
   );

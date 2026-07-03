@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import Builder from './pages/Builder.jsx';
 import Responses from './pages/Responses.jsx';
 import RespondentForm from './pages/RespondentForm.jsx';
+import AppShell from './components/AppShell.jsx';
 
 function useSession() {
   const [session, setSession] = useState(undefined); // undefined = loading
@@ -28,13 +29,17 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public — respondents fill this out, no login required */}
+        {/* Public: respondents fill this out, no login required */}
         <Route path="/form/:instrumentId" element={<RespondentForm />} />
 
         <Route path="/login" element={<Login />} />
-        <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
-        <Route path="/instrument/:id/builder" element={<Protected><Builder /></Protected>} />
-        <Route path="/instrument/:id/responses" element={<Protected><Responses /></Protected>} />
+
+        <Route element={<Protected><AppShell /></Protected>}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/instrument/:id/builder" element={<Builder />} />
+          <Route path="/instrument/:id/responses" element={<Responses />} />
+        </Route>
+
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>

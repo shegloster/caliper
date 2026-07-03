@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Analog instrument dial — needle + tick marks, no filled progress ring.
+// Analog instrument dial: needle and tick marks, no filled progress ring.
 export default function Gauge({ value, label, color = '#C1440E', size = 84 }) {
   const pct = Math.max(0, Math.min(100, value ?? 0));
   const sweep = 240, start = -210;
@@ -26,7 +26,7 @@ export default function Gauge({ value, label, color = '#C1440E', size = 84 }) {
         <circle cx={cx} cy={cy} r="3" fill={color} />
       </svg>
       <div className="gaugeReadout">
-        {value == null ? '—' : Math.round(value)}
+        {value == null ? 'N/A' : Math.round(value)}
         {value != null && <span className="gaugeUnit">%</span>}
       </div>
       {label && <div className="gaugeLabel">{label}</div>}

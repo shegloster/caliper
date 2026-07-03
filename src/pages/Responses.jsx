@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { scoreConstruct, meanSD, cronbachAlpha, slug } from '../lib/scoring';
+import { scoreConstruct, meanSD, cronbachAlpha, skewness, itemTotalCorrelations, constructCorrelationMatrix, slug } from '../lib/scoring';
 import Gauge from '../components/Gauge';
 
 export default function Responses() {
@@ -53,6 +53,8 @@ export default function Responses() {
 
   if (!instrument) return <div className="loadingScreen">Loading…</div>;
 
+  const rawResponses = respondents.map((r) => rawFor(r.id));
+
   const constructStats = constructs.map((c) => {
     const scores = respondents.map((r) => scoreConstruct(c.id, questions, rawFor(r.id))).filter((v) => v != null);
     const { mean, sd } = meanSD(scores);
@@ -61,18 +63,28 @@ export default function Responses() {
       responsesByQuestion[q.id] = respondents.map((r) => rawFor(r.id)[q.id]).filter((v) => v != null);
     });
     const alpha = cronbachAlpha(questions.filter((q) => q.construct_id === c.id && q.type === 'likert'), responsesByQuestion);
-    return { ...c, mean, sd, alpha };
+    const skew = skewness(scores);
+    return { ...c, mean, sd, alpha, skew };
   });
 
+  const itemAnalysis = constructs.map((c) => ({
+    construct: c,
+    items: itemTotalCorrelations(c.id, questions, rawResponses),
+  }));
+
+  const corrMatrix = constructs.length > 1 ? constructCorrelationMatrix(constructs, questions, rawResponses, scoreConstruct) : null;
+
   return (
-    <div className="page gridBg">
-      <Link to={`/instrument/${id}/builder`} className="backLink">&larr; Builder</Link>
-      <div className="responseHead">
-        <h1 className="pageTitle" style={{ margin: 0 }}>{instrument.title}</h1>
+    <div>
+      <div className="pageHead">
+        <div style={{ flex: 1 }}>
+          <div className="topline">Instrument</div>
+          <h1 className="pageTitle" style={{ margin: 0 }}>{instrument.title}</h1>
+        </div>
         {instrument.unlocked ? (
           <button className="downloadBtn" onClick={exportCSV}>Export scored CSV</button>
         ) : (
-          <span className="qMeta">Unlock in Builder to enable scoring & export</span>
+          <span className="qMeta">Unlock in Builder to enable scoring &amp; export</span>
         )}
       </div>
 
@@ -92,18 +104,71 @@ export default function Responses() {
           </div>
           <div className="statsPanel">
             <div className="sectionLabel">Descriptive statistics</div>
-            <div className="statsGrid">
-              <span></span><span>Mean</span><span>SD</span><span>α</span>
+            <div className="statsGrid5">
+              <span></span><span>Mean</span><span>SD</span><span>α</span><span>Skew</span>
               {constructStats.map((c) => (
                 <React.Fragment key={c.id}>
                   <span style={{ color: c.color, fontWeight: 600 }}>{c.name}</span>
-                  <span>{c.mean == null ? '—' : c.mean.toFixed(1)}</span>
-                  <span>{c.sd == null ? '—' : c.sd.toFixed(1)}</span>
-                  <span>{c.alpha == null ? '—' : c.alpha.toFixed(2)}</span>
+                  <span>{c.mean == null ? 'N/A' : c.mean.toFixed(1)}</span>
+                  <span>{c.sd == null ? 'N/A' : c.sd.toFixed(1)}</span>
+                  <span>{c.alpha == null ? 'N/A' : c.alpha.toFixed(2)}</span>
+                  <span>{c.skew == null ? 'N/A' : c.skew.toFixed(2)}</span>
                 </React.Fragment>
               ))}
             </div>
+            <p className="sideCardText" style={{ marginTop: 12 }}>
+              α above 0.7 indicates acceptable internal consistency. Skew near 0 suggests a roughly normal distribution; values beyond ±1 are notably skewed.
+            </p>
           </div>
+
+          <div className="statsPanel">
+            <div className="sectionLabel">Item analysis</div>
+            {itemAnalysis.map(({ construct, items }) => (
+              items.length > 0 && (
+                <div key={construct.id} style={{ marginBottom: 14 }}>
+                  <div style={{ color: construct.color, fontWeight: 600, fontSize: 12.5, marginBottom: 6 }}>{construct.name}</div>
+                  <div className="itemCorrGrid">
+                    {items.map(({ question, r, n }) => (
+                      <React.Fragment key={question.id}>
+                        <span className="qMeta" style={{ fontFamily: "'Archivo', sans-serif", fontSize: 12.5, color: 'var(--ink)' }}>{question.text}</span>
+                        <span style={{ color: r != null && r < 0.3 ? 'var(--accent)' : 'var(--ink)' }}>{r == null ? 'N/A' : r.toFixed(2)}</span>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+              )
+            ))}
+            <p className="sideCardText" style={{ marginTop: 4 }}>
+              Corrected item-total correlation. Below 0.3 suggests an item may not belong with the rest of its construct.
+            </p>
+          </div>
+
+          {corrMatrix && (
+            <div className="statsPanel">
+              <div className="sectionLabel">Construct correlations</div>
+              <table className="corrTable">
+                <thead>
+                  <tr>
+                    <th></th>
+                    {constructs.map((c) => <th key={c.id} style={{ color: c.color }}>{c.name.slice(0, 3).toUpperCase()}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {constructs.map((c1, i) => (
+                    <tr key={c1.id}>
+                      <td style={{ color: c1.color, fontWeight: 600 }}>{c1.name}</td>
+                      {constructs.map((c2, j) => (
+                        <td key={c2.id}>{i === j ? '1.00' : corrMatrix[i][j] == null ? 'N/A' : corrMatrix[i][j].toFixed(2)}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="sideCardText" style={{ marginTop: 12 }}>
+                Pearson correlation between construct scores. High correlations (above 0.85) between constructs meant to measure distinct things can indicate a discriminant validity concern.
+              </p>
+            </div>
+          )}
         </>
       )}
 
