@@ -2,17 +2,37 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import Gauge from '../components/Gauge';
+import { Eye, EyeOff } from 'lucide-react';
+
+function passwordChecks(pw) {
+  return { length: pw.length >= 8, upper: /[A-Z]/.test(pw), number: /[0-9]/.test(pw) };
+}
 
 export default function Login() {
   const [mode, setMode] = useState('login');
-  const [form, setForm] = useState({ name: '', institution: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', institution: '', email: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
   const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+
+    if (mode === 'register') {
+      const checks = passwordChecks(form.password);
+      if (!checks.length || !checks.upper || !checks.number) {
+        setError('Password needs at least 8 characters, one capital letter, and one number.');
+        return;
+      }
+      if (form.password !== form.confirmPassword) {
+        setError("Passwords don't match.");
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       if (mode === 'login') {
@@ -61,8 +81,8 @@ export default function Login() {
       <div className="authFormPane">
         <div className="authCard">
           <div className="authToggle">
-            <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>Log in</button>
-            <button type="button" className={mode === 'register' ? 'active' : ''} onClick={() => setMode('register')}>Register</button>
+            <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setError(''); }}>Log in</button>
+            <button type="button" className={mode === 'register' ? 'active' : ''} onClick={() => { setMode('register'); setError(''); }}>Register</button>
           </div>
 
           <button type="button" className="btnGhost wide" onClick={handleGoogle} style={{ marginBottom: 16 }}>
@@ -70,15 +90,51 @@ export default function Login() {
           </button>
           <div className="dividerRow"><span>or</span></div>
 
-          <form className="authForm" onSubmit={handleSubmit}>
+          <form className="authForm" onSubmit={handleSubmit} noValidate>
             {mode === 'register' && (
               <>
-                <div className="field"><label>Full name</label><input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div className="field"><label>Institution</label><input type="text" required value={form.institution} onChange={(e) => setForm({ ...form, institution: e.target.value })} /></div>
+                <div className="field"><label>Full name</label><input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+                <div className="field"><label>Institution</label><input type="text" value={form.institution} onChange={(e) => setForm({ ...form, institution: e.target.value })} /></div>
               </>
             )}
-            <div className="field"><label>Email</label><input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-            <div className="field"><label>Password</label><input type="password" required minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></div>
+            <div className="field"><label>Email</label><input type="text" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+
+            <div className="field">
+              <label>Password</label>
+              <div className="pwField">
+                <input type={showPw ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                <button type="button" className="pwToggle" onClick={() => setShowPw((s) => !s)} aria-label={showPw ? 'Hide password' : 'Show password'}>
+                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
+
+            {mode === 'register' && (
+              <>
+                <ul className="pwChecklist">
+                  {(() => {
+                    const c = passwordChecks(form.password);
+                    return (
+                      <>
+                        <li className={c.length ? 'met' : ''}><span className="pwDot" /> At least 8 characters</li>
+                        <li className={c.upper ? 'met' : ''}><span className="pwDot" /> One capital letter</li>
+                        <li className={c.number ? 'met' : ''}><span className="pwDot" /> One number</li>
+                      </>
+                    );
+                  })()}
+                </ul>
+                <div className="field">
+                  <label>Re-enter password</label>
+                  <div className="pwField">
+                    <input type={showConfirmPw ? 'text' : 'password'} value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} />
+                    <button type="button" className="pwToggle" onClick={() => setShowConfirmPw((s) => !s)} aria-label={showConfirmPw ? 'Hide password' : 'Show password'}>
+                      {showConfirmPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
             {error && <div className="errorText">{error}</div>}
             <button type="submit" className="btnPrimary wide" disabled={loading}>
               {loading ? 'Please wait…' : mode === 'login' ? 'Log in' : 'Create account'}
