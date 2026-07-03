@@ -62,7 +62,6 @@ export default function AppShell() {
       <main className="shellMain gridBg">
         <div className="shellInner">
           <Outlet />
-          <footer className="siteFooter">Caliper by OOladehinde</footer>
         </div>
       </main>
 

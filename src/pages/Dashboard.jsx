@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { UploadCloud, Lock, Unlock, Loader2 } from 'lucide-react';
+import RingGauge from '../components/RingGauge';
 
 export default function Dashboard() {
   const [instruments, setInstruments] = useState([]);
@@ -78,12 +79,35 @@ export default function Dashboard() {
 
   if (loading) return <div className="loadingScreen"><Loader2 className="spin" size={20} /></div>;
 
+  const totalRespondents = instruments.reduce((s, i) => s + (i.respondents?.[0]?.count ?? 0), 0);
+  const liveCount = instruments.filter((i) => i.status === 'Live').length;
+  const unlockedCount = instruments.filter((i) => i.unlocked).length;
+
   return (
     <div>
       <div className="pageHead">
         <div>
           <div className="topline">Dashboard</div>
           <h1 className="pageTitle">Welcome back, {profile?.full_name?.split(' ')[0] || 'Researcher'}</h1>
+        </div>
+      </div>
+
+      <div className="statBand">
+        <div className="statCard">
+          <RingGauge value={100} color="var(--accent)" />
+          <div className="statCardInfo"><div className="statCardNum">{instruments.length}</div><div className="statCardLabel">Instruments</div></div>
+        </div>
+        <div className="statCard">
+          <RingGauge value={instruments.length ? (liveCount / instruments.length) * 100 : 0} color="var(--blue)" />
+          <div className="statCardInfo"><div className="statCardNum">{liveCount}</div><div className="statCardLabel">Live</div></div>
+        </div>
+        <div className="statCard">
+          <RingGauge value={Math.min(100, totalRespondents)} color="var(--graphite)" />
+          <div className="statCardInfo"><div className="statCardNum">{totalRespondents}</div><div className="statCardLabel">Respondents</div></div>
+        </div>
+        <div className="statCard">
+          <RingGauge value={instruments.length ? (unlockedCount / instruments.length) * 100 : 0} color="var(--ochre)" />
+          <div className="statCardInfo"><div className="statCardNum">{unlockedCount}</div><div className="statCardLabel">Unlocked</div></div>
         </div>
       </div>
 
@@ -102,18 +126,24 @@ export default function Dashboard() {
 
       <div className="sectionLabel" style={{ marginTop: 8 }}>Your instruments</div>
       <div className="instrumentGrid">
-        {instruments.map((inst) => (
-          <button key={inst.id} className="instrumentCard" onClick={() => navigate(`/instrument/${inst.id}/builder`)}>
-            <div className="instTitle">{inst.title}</div>
-            <div className="instMeta">
-              <span>{inst.respondents?.[0]?.count ?? 0} respondents · {inst.questions?.[0]?.count ?? 0} questions</span>
-              <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                {inst.unlocked ? <Unlock size={12} color="var(--blue)" /> : <Lock size={12} color="var(--muted)" />}
-                <span className={`statusPill ${inst.status === 'Live' ? 'live' : 'draft'}`}>{inst.status}</span>
-              </span>
-            </div>
-          </button>
-        ))}
+        {instruments.map((inst, i) => {
+          const count = inst.respondents?.[0]?.count ?? 0;
+          return (
+            <button key={inst.id} className="instrumentCard" style={{ animationDelay: `${i * 40}ms` }} onClick={() => navigate(`/instrument/${inst.id}/builder`)}>
+              <div className="instCardBody">
+                <div className="instTitle">{inst.title}</div>
+                <div className="instMeta">
+                  <span>{count} respondents · {inst.questions?.[0]?.count ?? 0} questions</span>
+                  <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                    {inst.unlocked ? <Unlock size={12} color="var(--blue)" /> : <Lock size={12} color="var(--muted)" />}
+                    <span className={`statusPill ${inst.status === 'Live' ? 'live' : 'draft'}`}>{inst.status}</span>
+                  </span>
+                </div>
+              </div>
+              <RingGauge value={Math.min(100, (count / 30) * 100)} color={inst.status === 'Live' ? 'var(--accent)' : 'var(--muted)'} size={40} stroke={4} />
+            </button>
+          );
+        })}
         {instruments.length === 0 && <div className="emptyState">No instruments yet. Create one above.</div>}
       </div>
     </div>

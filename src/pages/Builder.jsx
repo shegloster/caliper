@@ -212,43 +212,47 @@ export default function Builder() {
         </div>
 
         <aside className="builderSide">
-          {!instrument.unlocked ? (
-            <div className="sideCard">
-              <div className="sideCardTitle">Unlock this instrument</div>
-              <p className="sideCardText">Enter an access code to enable draft upload, scoring, and export.</p>
-              {needsUnlock && <p className="sideCardText" style={{ color: 'var(--accent)' }}>Redeem a code to parse your uploaded draft.</p>}
-              <input placeholder="Access code" value={code} onChange={(e) => setCode(e.target.value)} style={{ marginBottom: 8, width: '100%' }} />
-              <button className="btnGhost wide" onClick={redeemCode}>Redeem</button>
-              {codeMsg && <div className="qMeta" style={{ marginTop: 8 }}>{codeMsg}</div>}
-            </div>
-          ) : (
-            <div className="sideCard">
-              <div className="sideCardTitle">Draft upload</div>
-              <p className="sideCardText">Re-parse a new draft into this instrument.</p>
-              <button className="btnGhost wide" onClick={triggerReupload} disabled={parsing}>
-                {parsing ? 'Parsing…' : 'Upload / re-parse draft'}
-              </button>
-              <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }} onChange={onInputChange} />
-              {parseMsg && <div className="qMeta" style={{ marginTop: 10 }}>{parseMsg}</div>}
-            </div>
-          )}
-
-          {instrument.status === 'Live' && (
-            <div className="sideCard">
-              <div className="sideCardTitle">Public form link</div>
-              <p className="sideCardText">Share this with respondents.</p>
-              <code className="linkChip">{window.location.origin}/form/{id}</code>
-            </div>
-          )}
-
           <div className="sideCard">
-            <div className="sideCardTitle">Constructs</div>
-            {constructs.length === 0 && <p className="sideCardText">Added automatically once you save your first Likert question.</p>}
-            {constructs.map((c) => (
-              <div key={c.id} className="constructChip" style={{ marginBottom: 6 }}>
-                <span className="swatch" style={{ background: c.color }} />{c.name}
+            {!instrument.unlocked ? (
+              <div className="sideSection">
+                <div className="sideCardTitle">Unlock this instrument</div>
+                <p className="sideCardText">Enter an access code to enable draft upload, scoring, and export.</p>
+                {needsUnlock && <p className="sideCardText" style={{ color: 'var(--accent)' }}>Redeem a code to parse your uploaded draft.</p>}
+                <input placeholder="Access code" value={code} onChange={(e) => setCode(e.target.value)} style={{ marginBottom: 8, width: '100%' }} />
+                <button className="btnGhost wide" onClick={redeemCode}>Redeem</button>
+                {codeMsg && <div className="qMeta" style={{ marginTop: 8 }}>{codeMsg}</div>}
               </div>
-            ))}
+            ) : (
+              <div className="sideSection">
+                <div className="sideCardTitle">Draft upload</div>
+                <p className="sideCardText">Re-parse a new draft into this instrument.</p>
+                <button className="btnGhost wide" onClick={triggerReupload} disabled={parsing}>
+                  {parsing ? 'Parsing…' : 'Upload / re-parse draft'}
+                </button>
+                <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" style={{ display: 'none' }} onChange={onInputChange} />
+                {parseMsg && <div className="qMeta" style={{ marginTop: 10 }}>{parseMsg}</div>}
+              </div>
+            )}
+
+            {instrument.status === 'Live' && (
+              <div className="sideSection">
+                <div className="sideCardTitle">Public form link</div>
+                <p className="sideCardText">Share this with respondents.</p>
+                <code className="linkChip">{window.location.origin}/form/{id}</code>
+              </div>
+            )}
+
+            <div className="sideSection">
+              <div className="sideCardTitle">Constructs</div>
+              {constructs.length === 0 && <p className="sideCardText">Added automatically once you save your first Likert question.</p>}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {constructs.map((c) => (
+                  <div key={c.id} className="constructChip">
+                    <span className="swatch" style={{ background: c.color }} />{c.name}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </aside>
       </div>

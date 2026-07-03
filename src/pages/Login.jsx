@@ -60,7 +60,6 @@ export default function Login() {
       </div>
       <div className="authFormPane">
         <div className="authCard">
-          <span className="corner tl" /><span className="corner tr" /><span className="corner bl" /><span className="corner br" />
           <div className="authToggle">
             <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => setMode('login')}>Log in</button>
             <button type="button" className={mode === 'register' ? 'active' : ''} onClick={() => setMode('register')}>Register</button>
@@ -86,7 +85,6 @@ export default function Login() {
             </button>
           </form>
         </div>
-        <footer className="siteFooter">Caliper by OOladehinde</footer>
       </div>
     </div>
   );
