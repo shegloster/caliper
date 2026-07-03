@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import Login from './pages/Login.jsx';
+import ResetPassword from './pages/ResetPassword.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Builder from './pages/Builder.jsx';
 import Responses from './pages/Responses.jsx';
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/form/:instrumentId" element={<RespondentForm />} />
 
         <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         <Route element={<Protected><AppShell /></Protected>}>
           <Route path="/dashboard" element={<Dashboard />} />

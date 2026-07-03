@@ -9,9 +9,10 @@ function passwordChecks(pw) {
 }
 
 export default function Login() {
-  const [mode, setMode] = useState('login');
+  const [mode, setMode] = useState('login'); // 'login' | 'register' | 'forgot'
   const [form, setForm] = useState({ name: '', institution: '', email: '', password: '', confirmPassword: '' });
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
@@ -20,6 +21,23 @@ export default function Login() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    setInfo('');
+
+    if (mode === 'forgot') {
+      setLoading(true);
+      try {
+        const { error } = await supabase.auth.resetPasswordForEmail(form.email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setInfo('If an account exists for that email, a reset link is on its way.');
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     if (mode === 'register') {
       const checks = passwordChecks(form.password);
@@ -55,10 +73,17 @@ export default function Login() {
   }
 
   async function handleGoogle() {
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/dashboard` },
     });
+    if (error) setError(error.message);
+  }
+
+  function switchMode(next) {
+    setMode(next);
+    setError('');
+    setInfo('');
   }
 
   return (
@@ -72,23 +97,34 @@ export default function Login() {
         <div className="illustrationBlock">
           <div className="illustrationLabel">Live construct scoring</div>
           <div className="authIllustration">
-            <Gauge value={78} label="Health Literacy" color="#3E6B8C" size={78} />
-            <Gauge value={41} label="Perceived Barriers" color="#B8722A" size={78} />
-            <Gauge value={63} label="Social Support" color="#4B6B54" size={78} />
+            <Gauge value={78} label="Health Literacy" color="#3E6B8C" size={100} />
+            <Gauge value={41} label="Perceived Barriers" color="#B8722A" size={100} />
+            <Gauge value={63} label="Social Support" color="#4B6B54" size={100} />
           </div>
         </div>
       </div>
       <div className="authFormPane">
         <div className="authCard">
-          <div className="authToggle">
-            <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => { setMode('login'); setError(''); }}>Log in</button>
-            <button type="button" className={mode === 'register' ? 'active' : ''} onClick={() => { setMode('register'); setError(''); }}>Register</button>
-          </div>
+          {mode !== 'forgot' && (
+            <>
+              <div className="authToggle">
+                <button type="button" className={mode === 'login' ? 'active' : ''} onClick={() => switchMode('login')}>Log in</button>
+                <button type="button" className={mode === 'register' ? 'active' : ''} onClick={() => switchMode('register')}>Register</button>
+              </div>
 
-          <button type="button" className="btnGhost wide" onClick={handleGoogle} style={{ marginBottom: 16 }}>
-            Continue with Google
-          </button>
-          <div className="dividerRow"><span>or</span></div>
+              <button type="button" className="btnGhost wide" onClick={handleGoogle} style={{ marginBottom: 16 }}>
+                Continue with Google
+              </button>
+              <div className="dividerRow"><span>or</span></div>
+            </>
+          )}
+
+          {mode === 'forgot' && (
+            <div style={{ marginBottom: 18 }}>
+              <div className="sideCardTitle">Reset your password</div>
+              <p className="sideCardText" style={{ marginBottom: 0 }}>Enter the email on your account and we'll send a reset link.</p>
+            </div>
+          )}
 
           <form className="authForm" onSubmit={handleSubmit} noValidate>
             {mode === 'register' && (
@@ -99,15 +135,21 @@ export default function Login() {
             )}
             <div className="field"><label>Email</label><input type="text" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
 
-            <div className="field">
-              <label>Password</label>
-              <div className="pwField">
-                <input type={showPw ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-                <button type="button" className="pwToggle" onClick={() => setShowPw((s) => !s)} aria-label={showPw ? 'Hide password' : 'Show password'}>
-                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
+            {mode !== 'forgot' && (
+              <div className="field">
+                <label>Password</label>
+                <div className="pwField">
+                  <input type={showPw ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                  <button type="button" className="pwToggle" onClick={() => setShowPw((s) => !s)} aria-label={showPw ? 'Hide password' : 'Show password'}>
+                    {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {mode === 'login' && (
+              <button type="button" className="linkBtn" style={{ alignSelf: 'flex-end', marginTop: -6 }} onClick={() => switchMode('forgot')}>Forgot password?</button>
+            )}
 
             {mode === 'register' && (
               <>
@@ -136,9 +178,15 @@ export default function Login() {
             )}
 
             {error && <div className="errorText">{error}</div>}
+            {info && <div className="errorText" style={{ color: 'var(--blue)', background: '#EEF3F7', borderColor: 'var(--blue)' }}>{info}</div>}
+
             <button type="submit" className="btnPrimary wide" disabled={loading}>
-              {loading ? 'Please wait…' : mode === 'login' ? 'Log in' : 'Create account'}
+              {loading ? 'Please wait…' : mode === 'login' ? 'Log in' : mode === 'register' ? 'Create account' : 'Send reset link'}
             </button>
+
+            {mode === 'forgot' && (
+              <button type="button" className="linkBtn" style={{ alignSelf: 'center', marginTop: 4 }} onClick={() => switchMode('login')}>Back to log in</button>
+            )}
           </form>
         </div>
       </div>

@@ -103,16 +103,16 @@ button { font-family: inherit; }
 
 /* ---- Auth screen ---- */
 .authScreen { min-height: 100vh; display: flex; }
-.authBrandPane { flex: 1.1; background: var(--ink); color: #E6E9EC; padding: 64px; display: flex; flex-direction: column; justify-content: center; gap: 26px; background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 28px 28px; }
-.brandBlock { display: flex; flex-direction: column; gap: 6px; }
-.brand.large { font-size: 36px; letter-spacing: 0.04em; }
-.brandSubtitle { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.14em; color: #E88A5C; text-transform: uppercase; margin-left: 1px; }
-.authTagline { font-size: 18px; font-weight: 500; line-height: 1.55; color: #D3D7DB; max-width: 400px; }
-.illustrationBlock { padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.1); }
-.illustrationLabel { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em; color: #7B838A; text-transform: uppercase; margin-bottom: 16px; }
-.authIllustration { display: flex; gap: 28px; }
-.authIllustration .gaugeReadout { color: #F4F3EE; }
-.authIllustration .gaugeLabel { color: #9CA3AA; }
+.authBrandPane { flex: 1.1; background: var(--ink); color: #E6E9EC; padding: 72px; display: flex; flex-direction: column; justify-content: center; gap: 30px; background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 28px 28px; }
+.brandBlock { display: flex; flex-direction: column; gap: 8px; }
+.brand.large { font-size: 46px; letter-spacing: 0.03em; }
+.brandSubtitle { font-family: 'JetBrains Mono', monospace; font-size: 13px; letter-spacing: 0.16em; color: #E88A5C; text-transform: uppercase; margin-left: 1px; }
+.authTagline { font-size: 24px; font-weight: 600; line-height: 1.4; color: #E6E9EC; max-width: 640px; }
+.illustrationBlock { padding-top: 28px; border-top: 1px solid rgba(255,255,255,0.1); }
+.illustrationLabel { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.13em; color: #7B838A; text-transform: uppercase; margin-bottom: 20px; }
+.authIllustration { display: flex; gap: 44px; }
+.authIllustration .gaugeReadout { color: #F4F3EE; font-size: 21px; }
+.authIllustration .gaugeLabel { color: #9CA3AA; font-size: 13px; max-width: 130px; }
 .authFormPane { width: 460px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 40px; }
 .authCard { width: 100%; max-width: 360px; background: var(--surface); border-radius: var(--radius-lg); padding: 36px 32px; box-shadow: 0 20px 60px rgba(22,35,58,0.14); }
 .authToggle { display: flex; background: #F0F1EC; border-radius: 12px; padding: 4px; margin-bottom: 24px; }
