@@ -62,11 +62,7 @@ export default function Dashboard() {
       const { error: uploadErr } = await supabase.storage.from('drafts').upload(path, file);
       if (uploadErr) throw uploadErr;
 
-      if (!instrument.unlocked) {
-        navigate(`/instrument/${instrument.id}/builder?needsUnlock=1&pendingFile=${encodeURIComponent(path)}`);
-        return;
-      }
-      navigate(`/instrument/${instrument.id}/builder`);
+      navigate(`/instrument/${instrument.id}/builder?pendingFile=${encodeURIComponent(path)}${instrument.unlocked ? '' : '&needsUnlock=1'}`);
     } catch (err) {
       console.error(err);
       alert('Upload failed: ' + err.message);

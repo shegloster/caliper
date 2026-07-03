@@ -277,7 +277,7 @@ declare
   v_target_instrument uuid;
   v_period_end timestamptz;
 begin
-  select * into v_code from access_codes where code = p_code for update;
+  select * into v_code from access_codes where upper(code) = upper(p_code) for update;
 
   if not found then
     return 'invalid_code';
@@ -352,3 +352,19 @@ create policy "drafts_insert_own" on storage.objects
 
 create policy "drafts_select_own" on storage.objects
   for select using (bucket_id = 'drafts' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- =========================================================
+-- MIGRATION: standard questionnaire structure
+-- Run this once in the SQL editor on your existing project.
+-- Adds: instrument front/back matter, question sections and
+-- labeled scale presets, construct IV/DV role.
+-- =========================================================
+alter table instruments add column if not exists introduction text;
+alter table instruments add column if not exists consent_text text;
+alter table instruments add column if not exists closing_note text;
+
+alter table questions add column if not exists section text;
+alter table questions add column if not exists scale_type text; -- preset key, or 'custom'
+alter table questions add column if not exists scale_labels jsonb; -- array of point labels, e.g. ["Strongly Disagree", ..., "Strongly Agree"]
+
+alter table constructs add column if not exists role text; -- 'independent' | 'dependent' | null

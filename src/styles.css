@@ -125,7 +125,8 @@ button { font-family: inherit; }
 .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 2px; }
 .field label { font-size: 10.5px; text-transform: uppercase; color: var(--muted); font-weight: 700; letter-spacing: 0.04em; }
 .field input, .field select { font-family: 'Archivo', sans-serif; font-size: 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; background: var(--paper); transition: border-color 0.15s var(--ease); }
-.field input:focus, .field select:focus { border-color: var(--ink); outline: none; }
+.field textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--ink); outline: none; }
 .checkRow { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .errorText { color: var(--accent); font-size: 12.5px; background: #FBF4EF; border: 1px solid var(--accent); border-radius: var(--radius-sm); padding: 8px 10px; }
 .pwField { position: relative; display: flex; align-items: center; }
@@ -175,6 +176,21 @@ button { font-family: inherit; }
 .linkChip { display: block; font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 10px; word-break: break-all; }
 
 .parsedBanner { display: flex; align-items: center; gap: 8px; background: #FBF4EF; border: 1px solid var(--accent); padding: 11px 14px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 13px; color: #8C3308; }
+
+.parseOverlay { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; padding: 64px 24px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+.parseIconRing { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(193,68,14,0.08); position: relative; }
+.parseIconRing::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(193,68,14,0.25); border-top-color: var(--accent); animation: parseSpin 1s linear infinite; }
+.parseIcon { color: var(--accent); animation: parsePulse 1.6s ease-in-out infinite; }
+@keyframes parseSpin { to { transform: rotate(360deg); } }
+@keyframes parsePulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.92); } }
+.parseStageText { font-family: 'Big Shoulders Display', sans-serif; font-weight: 700; font-size: 19px; color: var(--ink); animation: parseFadeIn 0.4s var(--ease) both; min-height: 24px; }
+@keyframes parseFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.parseProgressTrack { width: 220px; height: 4px; background: var(--grid); border-radius: 4px; overflow: hidden; position: relative; }
+.parseProgressFill { position: absolute; top: 0; left: -40%; width: 40%; height: 100%; background: var(--accent); border-radius: 4px; animation: parseSlide 1.4s ease-in-out infinite; }
+@keyframes parseSlide { 0% { left: -40%; } 100% { left: 100%; } }
+.parseStageList { display: flex; gap: 6px; }
+.parseDot { width: 6px; height: 6px; border-radius: 50%; background: var(--grid); transition: background 0.3s var(--ease); }
+.parseDot.done { background: var(--accent); }
 .qList { display: flex; flex-direction: column; gap: 9px; }
 .qRow { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 16px 18px; box-shadow: var(--shadow-sm); }
 .qTop { display: flex; justify-content: space-between; gap: 10px; }
